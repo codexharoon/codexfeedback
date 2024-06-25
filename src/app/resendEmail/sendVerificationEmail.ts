@@ -10,13 +10,21 @@ export const sendVerificationEmail = async (
   try {
     const textContent = `Hi ${username},\n\nYour verification code is: ${otp}\n\nBest regards,\nCodexFeedback Team`;
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
+    const { data, error } = await resend.emails.send({
+      from: "no-reply@codexharoon.com",
       to: email,
       subject: "Verification Code -  CodexFeedback",
       text: textContent,
       react: EmailTemplate({ username, otp }),
     });
+
+    if (error) {
+      console.error("error sending email", error);
+      return {
+        success: false,
+        message: "Error sending email",
+      };
+    }
 
     return {
       success: true,

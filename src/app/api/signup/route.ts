@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     const existingUserWithUsername = await USER.findOne({
       username,
-      isVerify: true,
+      //   isVerify: true,
     });
 
     if (existingUserWithUsername) {
