@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     const existingUserWithUsername = await USER.findOne({
       username,
-      //   isVerify: true,
+      isVerify: true,
     });
 
     if (existingUserWithUsername) {
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
           }
         );
       } else {
+        existingUserWithEmail.username = username;
         const hashedPassword = await bcryptjs.hash(password, 10);
         existingUserWithEmail.password = hashedPassword;
         existingUserWithEmail.verifyCode = otp;

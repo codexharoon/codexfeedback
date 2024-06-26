@@ -38,6 +38,7 @@ export async function GET(req: Request) {
 
     const isUsernameAvailable = await USER.findOne({
       username: isUsernameValidate.data.username,
+      isVerify: true,
     });
 
     if (isUsernameAvailable) {
