@@ -86,3 +86,60 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    return Response.json(
+      {
+        success: false,
+        message: "Unauthorized",
+      },
+      {
+        status: 401,
+      }
+    );
+  }
+
+  const user: User = session.user as User;
+  await dbConnection();
+
+  try {
+    const foundUser = await USER.findById(user?._id);
+
+    if (!foundUser) {
+      return Response.json(
+        {
+          success: false,
+          message: "User not found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    return Response.json(
+      {
+        success: true,
+        message: "User accept message status fetched successfully",
+        isAcceptingMessage: user.isAcceptingMessage,
+      },
+      {
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.log("error to fetch user is-accepting-message status: ", error);
+    return Response.json(
+      {
+        success: false,
+        message: "error to fetch user is-accepting-message status",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
