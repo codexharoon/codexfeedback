@@ -92,7 +92,7 @@ const Signup = () => {
           description: response.data.message,
         });
 
-        router.replace(`/verify/?${values.username}`);
+        router.replace(`/verify/${values.username}`);
       }
     } catch (error) {
       console.log("error to submit form", error);
@@ -109,7 +109,7 @@ const Signup = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="border p-10 w-[30%]">
+      <div className="border p-10 rounded-lg w-full max-w-lg">
         <div className="text-center mb-3">
           <h1 className="text-lg font-bold">Signup to CodexFeedback</h1>
           <p className="text-xs">It takes less then a minute.</p>
