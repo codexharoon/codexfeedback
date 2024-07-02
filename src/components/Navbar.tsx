@@ -19,7 +19,14 @@ const Navbar = () => {
           <span className="text-lg font-bold">
             Welcome, {session.user.username || session.user.email}
           </span>
-          <Button onClick={() => signOut()}>Signout</Button>
+          <Button
+            onClick={() => {
+              signOut({ redirect: false });
+              router.replace("/");
+            }}
+          >
+            Signout
+          </Button>
         </div>
       ) : (
         <div className="flex justify-between items-center">
