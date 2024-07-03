@@ -27,7 +27,6 @@ const page = () => {
   const { register, watch, setValue } = form;
 
   const isAcceptingMessage = watch("acceptMessage");
-  console.log("isAcceptingMessage: start", isAcceptingMessage);
   const [switchLoading, setSwitchLoading] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -43,21 +42,10 @@ const page = () => {
       if (!data.success) {
         throw new Error(data.message);
       } else {
-        console.log("data.isAcceptingMessage:", data.isAcceptingMessage);
-        const isAccMsg = data.isAcceptingMessage;
-        console.log("isAccMsg:", isAccMsg);
-        setValue("acceptMessage", isAccMsg);
+        setValue("acceptMessage", data.isAcceptingMessage);
       }
     } catch (error) {
       console.log("error to get accept message status:", error);
-      // const axiosErr = error as AxiosError<ApiResponse>;
-      // toast({
-      //   title: "error",
-      //   description:
-      //     axiosErr.response?.data.message ||
-      //     "Failed to get accept message status",
-      //   variant: "destructive",
-      // });
     } finally {
       setSwitchLoading(false);
     }
@@ -65,7 +53,6 @@ const page = () => {
 
   const handleSwitchChange = async () => {
     setSwitchLoading(true);
-    console.log("isAcceptingMessage before:", isAcceptingMessage);
     try {
       const response = await axios.post("/api/is-accepting-message", {
         isAcceptingMessage: !isAcceptingMessage,
@@ -76,9 +63,8 @@ const page = () => {
         throw new Error(data.message);
       } else {
         setValue("acceptMessage", !isAcceptingMessage);
-        console.log("isAcceptingMessage: after", isAcceptingMessage);
         toast({
-          title: isAcceptingMessage ? "ON" : "OFF",
+          title: "Updated",
           description: "Successfully set accept message status",
         });
       }
@@ -119,20 +105,9 @@ const page = () => {
           });
         } else {
           setMessages(data.messages);
-          // toast({
-          //   title: "success",
-          //   description: "Successfully get messages",
-          // });
         }
       } catch (error) {
         console.log("error to get messages:", error);
-        // const axiosErr = error as AxiosError<ApiResponse>;
-        // toast({
-        //   title: "An Error Occurred",
-        //   description:
-        //     axiosErr.response?.data.message || "error to get messages:",
-        //   variant: "destructive",
-        // });
       } finally {
         setSwitchLoading(false);
         setMsgLoading(false);
@@ -181,15 +156,14 @@ const page = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profileUrl);
     toast({
-      title: "success",
-      description: "Copied to clipboard",
+      title: "Copied to clipboard",
     });
   };
 
   if (!session || !session.user)
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <h1 className="font-bold text-2xl text-center">Please, Login first</h1>
+        <h1 className="font-bold text-2xl text-center">Please, Login first.</h1>
       </div>
     );
 
@@ -198,7 +172,7 @@ const page = () => {
       <h1 className="font-bold text-3xl">Dashboard</h1>
 
       <div className="mt-5 flex flex-col gap-3">
-        <p className="font-bold">Copy your unique link</p>
+        <p className="font-bold">Copy your Unique Link</p>
         <div className="flex gap-2">
           <Input type="text" disabled value={profileUrl} />
           <Button onClick={copyToClipboard}>Copy</Button>
@@ -243,7 +217,7 @@ const page = () => {
                     onMessageDelete={onMessageDelete}
                   />
                 ))
-              : "No messages found"}
+              : "No messages found."}
           </div>
         </div>
       </div>
