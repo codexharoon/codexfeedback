@@ -10,20 +10,24 @@ import { ApiResponse } from "@/app/types/ApiResponse";
 import { useToast } from "@/components/ui/use-toast";
 import { Message } from "@/app/models/User";
 import { useSession } from "next-auth/react";
-import { User } from "next-auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, RefreshCcw } from "lucide-react";
+import MessageCard from "@/components/MessageCard";
 
 const page = () => {
   const { toast } = useToast();
 
-  const { register, setValue, watch } = useForm<
-    z.infer<typeof acceptMessageSchema>
-  >({
+  const form = useForm<z.infer<typeof acceptMessageSchema>>({
     resolver: zodResolver(acceptMessageSchema),
   });
 
+  const { register, watch, setValue } = form;
+
   const isAcceptingMessage = watch("acceptMessage");
+  console.log("isAcceptingMessage: start", isAcceptingMessage);
   const [switchLoading, setSwitchLoading] = useState<boolean>(false);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -39,30 +43,29 @@ const page = () => {
       if (!data.success) {
         throw new Error(data.message);
       } else {
-        setValue("acceptMessage", data.isAcceptingMessage);
-        toast({
-          title: "success",
-          description: "Successfully get accept message status",
-        });
+        console.log("data.isAcceptingMessage:", data.isAcceptingMessage);
+        const isAccMsg = data.isAcceptingMessage;
+        console.log("isAccMsg:", isAccMsg);
+        setValue("acceptMessage", isAccMsg);
       }
     } catch (error) {
       console.log("error to get accept message status:", error);
-      const axiosErr = error as AxiosError<ApiResponse>;
-      toast({
-        title: "error",
-        description:
-          axiosErr.response?.data.message ||
-          "Failed to get accept message status",
-        variant: "destructive",
-      });
+      // const axiosErr = error as AxiosError<ApiResponse>;
+      // toast({
+      //   title: "error",
+      //   description:
+      //     axiosErr.response?.data.message ||
+      //     "Failed to get accept message status",
+      //   variant: "destructive",
+      // });
     } finally {
       setSwitchLoading(false);
     }
   }, [setValue]);
 
-  const handleSwitchChange = useCallback(async () => {
+  const handleSwitchChange = async () => {
     setSwitchLoading(true);
-
+    console.log("isAcceptingMessage before:", isAcceptingMessage);
     try {
       const response = await axios.post("/api/is-accepting-message", {
         isAcceptingMessage: !isAcceptingMessage,
@@ -73,8 +76,9 @@ const page = () => {
         throw new Error(data.message);
       } else {
         setValue("acceptMessage", !isAcceptingMessage);
+        console.log("isAcceptingMessage: after", isAcceptingMessage);
         toast({
-          title: "success",
+          title: isAcceptingMessage ? "ON" : "OFF",
           description: "Successfully set accept message status",
         });
       }
@@ -91,7 +95,7 @@ const page = () => {
     } finally {
       setSwitchLoading(false);
     }
-  }, []);
+  };
 
   const getMessages = useCallback(
     async (refresh: boolean = false) => {
@@ -115,47 +119,50 @@ const page = () => {
           });
         } else {
           setMessages(data.messages);
-          toast({
-            title: "success",
-            description: "Successfully get messages",
-          });
+          // toast({
+          //   title: "success",
+          //   description: "Successfully get messages",
+          // });
         }
       } catch (error) {
         console.log("error to get messages:", error);
-        const axiosErr = error as AxiosError<ApiResponse>;
-        toast({
-          title: "An Error Occurred",
-          description:
-            axiosErr.response?.data.message || "error to get messages:",
-          variant: "destructive",
-        });
+        // const axiosErr = error as AxiosError<ApiResponse>;
+        // toast({
+        //   title: "An Error Occurred",
+        //   description:
+        //     axiosErr.response?.data.message || "error to get messages:",
+        //   variant: "destructive",
+        // });
       } finally {
         setSwitchLoading(false);
         setMsgLoading(false);
       }
     },
-    [setMsgLoading, setMessages]
+    [setMsgLoading, setMessages, setSwitchLoading]
   );
 
-  const onMessageDelete = useCallback(async (messageId: string) => {
-    try {
-      setMessages((prevMessages) =>
-        prevMessages.filter((msg) => msg._id !== messageId)
-      );
+  const onMessageDelete = useCallback(
+    async (messageId: string) => {
+      try {
+        setMessages((prevMessages) =>
+          prevMessages.filter((msg) => msg._id !== messageId)
+        );
 
-      toast({
-        title: "success",
-        description: "Successfully deleted message",
-      });
-    } catch (error) {
-      console.log("error to delete message:", error);
-      toast({
-        title: "An Error Occurred",
-        description: "Failed to delete message",
-        variant: "destructive",
-      });
-    }
-  }, []);
+        toast({
+          title: "success",
+          description: "Successfully deleted message",
+        });
+      } catch (error) {
+        console.log("error to delete message:", error);
+        toast({
+          title: "An Error Occurred",
+          description: "Failed to delete message",
+          variant: "destructive",
+        });
+      }
+    },
+    [setMessages]
+  );
 
   const { data: session } = useSession();
 
@@ -164,7 +171,7 @@ const page = () => {
 
     getIsAcceptingMessage();
     getMessages();
-  }, [session, setValue, getIsAcceptingMessage, getMessages]);
+  }, [session, getIsAcceptingMessage, getMessages]);
 
   const username = session?.user.username;
 
@@ -191,10 +198,53 @@ const page = () => {
       <h1 className="font-bold text-3xl">Dashboard</h1>
 
       <div className="mt-5 flex flex-col gap-3">
-        <p>Copy your unique link</p>
+        <p className="font-bold">Copy your unique link</p>
         <div className="flex gap-2">
           <Input type="text" disabled value={profileUrl} />
           <Button onClick={copyToClipboard}>Copy</Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            {...register("acceptMessage")}
+            disabled={switchLoading}
+            checked={isAcceptingMessage}
+            onCheckedChange={handleSwitchChange}
+          />
+
+          <span className="text-sm">
+            Accept Messages {isAcceptingMessage ? "ON" : "OFF"}
+          </span>
+        </div>
+
+        <Separator />
+
+        <div>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              getMessages();
+            }}
+            variant={"outline"}
+            disabled={msgLoading}
+          >
+            {msgLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+          </Button>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {messages.length > 0
+              ? messages.map((msg) => (
+                  <MessageCard
+                    key={`msg-${msg._id}`}
+                    message={msg}
+                    onMessageDelete={onMessageDelete}
+                  />
+                ))
+              : "No messages found"}
+          </div>
         </div>
       </div>
     </div>

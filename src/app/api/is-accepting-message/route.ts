@@ -124,7 +124,7 @@ export async function GET(req: Request) {
       {
         success: true,
         message: "User accept message status fetched successfully",
-        isAcceptingMessage: user.isAcceptingMessage,
+        isAcceptingMessage: foundUser.isAcceptingMessage,
       },
       {
         status: 200,
